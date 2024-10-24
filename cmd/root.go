@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
+	"github.com/nullsploit01/cc-sort/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +17,23 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("cc-sort called")
+		if len(args) < 1 {
+			cmd.PrintErr("Error: A file name is required as an argument.\n")
+			cmd.Usage()
+			return
+		}
+
+		file, err := os.Open(args[0])
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		err = internal.SortFileByLine(file)
+		if err != nil {
+			panic(err)
+		}
+
 	},
 }
 
