@@ -8,6 +8,7 @@ import (
 
 type FileSorter struct {
 	FileData map[string]uint64
+	Lines    []string
 }
 
 func ProcessFileToSorter(file *os.File) (*FileSorter, error) {
@@ -27,31 +28,31 @@ func ProcessFileToSorter(file *os.File) (*FileSorter, error) {
 		return nil, err
 	}
 
-	return &FileSorter{
-		FileData: fileData,
-	}, nil
-}
-
-func (f *FileSorter) SortFileByLines() ([]string, error) {
 	var lines []string
-	for line, freq := range f.FileData {
+	for line, freq := range fileData {
 		for i := uint64(0); i < freq; i++ {
 			lines = append(lines, line)
 		}
 	}
 
-	sort.Strings(lines)
+	return &FileSorter{
+		FileData: fileData,
+		Lines:    lines,
+	}, nil
+}
 
-	return lines, nil
+func (f *FileSorter) SortFileByLines() ([]string, error) {
+	sort.Strings(f.Lines)
+	return f.Lines, nil
 }
 
 func (f *FileSorter) SortFileByUniqueLines() ([]string, error) {
-	var lines []string
+	var uniqueLines []string
 	for line := range f.FileData {
-		lines = append(lines, line)
+		uniqueLines = append(uniqueLines, line)
 	}
 
-	sort.Strings(lines)
+	sort.Strings(uniqueLines)
 
-	return lines, nil
+	return uniqueLines, nil
 }
