@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"io"
 	"os"
+	"strings"
+	"syscall"
 
 	"github.com/nullsploit01/cc-sort/internal"
 	"github.com/spf13/cobra"
@@ -29,11 +32,16 @@ to quickly create a Cobra application.`,
 		}
 		defer file.Close()
 
-		err = internal.SortFileByLine(file)
+		lines, err := internal.SortFileByLine(file)
 		if err != nil {
-			panic(err)
+			cmd.PrintErrln(err)
 		}
 
+		output := strings.Join(lines, "\n")
+		_, err = cmd.OutOrStdout().Write([]byte(output))
+		if err != nil && !isBrokenPipeError(err) {
+			cmd.Println(err)
+		}
 	},
 }
 
@@ -42,6 +50,20 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func isBrokenPipeError(err error) bool {
+	if err == syscall.EPIPE {
+		return true
+	}
+	if err == io.ErrClosedPipe {
+		return true
+	}
+	if opErr, ok := err.(*os.PathError); ok {
+		// Unwrap the error
+		return opErr.Err == syscall.EPIPE
+	}
+	return false
 }
 
 func init() {
