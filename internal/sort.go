@@ -7,9 +7,11 @@ import (
 )
 
 func SortFileByLine(file *os.File) ([]string, error) {
-	defer file.Seek(0, 0)
-	lines := make([]string, 0)
+	if _, err := file.Seek(0, 0); err != nil {
+		return nil, err
+	}
 
+	var lines []string
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
@@ -20,8 +22,7 @@ func SortFileByLine(file *os.File) ([]string, error) {
 		return []string{}, err
 	}
 
-	sortLines := make([]string, len(lines))
-	copy(sortLines, lines)
-	sort.Sort(sort.StringSlice(sortLines))
-	return sortLines, nil
+	sort.Strings(lines)
+
+	return lines, nil
 }
