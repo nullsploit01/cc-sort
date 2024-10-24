@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var isUnique bool
+
 var rootCmd = &cobra.Command{
 	Use:   "cc-sort",
 	Short: "A brief description of your application",
@@ -20,6 +22,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		var lines []string
 		if len(args) < 1 {
 			cmd.PrintErr("Error: A file name is required as an argument.\n")
 			cmd.Usage()
@@ -31,8 +34,16 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 		defer file.Close()
+		fs, err := internal.ProcessFileToSorter(file)
+		if err != nil {
+			cmd.PrintErrln(err)
+		}
 
-		lines, err := internal.SortFileByLine(file)
+		if isUnique {
+			lines, err = fs.SortFileByUniqueLines()
+		} else {
+			lines, err = fs.SortFileByLines()
+		}
 		if err != nil {
 			cmd.PrintErrln(err)
 		}
@@ -42,6 +53,7 @@ to quickly create a Cobra application.`,
 		if err != nil && !isBrokenPipeError(err) {
 			cmd.Println(err)
 		}
+
 	},
 }
 
@@ -67,5 +79,5 @@ func isBrokenPipeError(err error) bool {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolVarP(&isUnique, "unique", "u", false, "Unique Keys")
 }
