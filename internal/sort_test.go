@@ -48,7 +48,7 @@ func TestSortFileByLines(t *testing.T) {
 	fileData := map[string]uint64{"hello": 2, "world": 1}
 	sorter := &internal.FileSorter{FileData: fileData}
 
-	sortedLines, _ := sorter.SortFileByLines()
+	sortedLines, _ := sorter.SortFileByLines(internal.RadixSort)
 	expected := []string{"hello", "hello", "world"}
 
 	if !reflect.DeepEqual(sortedLines, expected) {
@@ -60,7 +60,7 @@ func TestSortFileByUniqueLines(t *testing.T) {
 	fileData := map[string]uint64{"banana": 1, "apple": 2, "cherry": 1}
 	sorter := &internal.FileSorter{FileData: fileData}
 
-	sortedLines, _ := sorter.SortFileByUniqueLines()
+	sortedLines, _ := sorter.SortFileByUniqueLines(internal.RadixSort)
 	expected := []string{"apple", "banana", "cherry"}
 	sort.Strings(expected)
 

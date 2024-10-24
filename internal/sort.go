@@ -52,9 +52,9 @@ func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) 
 	var sortedLines []string
 	switch algorithm {
 	case RadixSort:
-		sortedLines, _ = f.SortByRadix()
+		sortedLines = f.SortByRadix()
 	case MergeSort:
-		// sortedLines, _ = f.SortByMerge()
+		sortedLines = f.SortByMerge()
 	default:
 		return nil, errors.New("unsupported sort algorithm")
 	}
@@ -72,9 +72,9 @@ func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, e
 
 	switch algorithm {
 	case RadixSort:
-		sortedLines, _ = f.SortByRadix()
+		sortedLines = f.SortByRadix()
 	case MergeSort:
-		// sortedLines, _ = f.SortByMerge()
+		sortedLines = f.SortByMerge()
 	default:
 		return nil, errors.New("unsupported sorting algorithm")
 	}
@@ -82,14 +82,18 @@ func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, e
 	return sortedLines, nil
 }
 
-func (f *FileSorter) SortByRadix() ([]string, error) {
+func (f *FileSorter) SortByRadix() []string {
 	maxLength := getMaxLineLength(f.Lines)
 
 	for i := maxLength - 1; i >= 0; i-- {
 		f.Lines = countingSortByPosition(f.Lines, i)
 	}
 
-	return f.Lines, nil
+	return f.Lines
+}
+
+func (f *FileSorter) SortByMerge() []string {
+	return mergeSort(f.Lines)
 }
 
 func countingSortByPosition(lines []string, position int) []string {
@@ -130,4 +134,36 @@ func getCharIndex(line string, position int) int {
 	}
 
 	return int(line[position]) + 1
+}
+
+func mergeSort(lines []string) []string {
+	if len(lines) <= 1 {
+		return lines
+	}
+
+	mid := len(lines) / 2
+	left := mergeSort(lines[:mid])
+	right := mergeSort(lines[mid:])
+
+	return merge(left, right)
+}
+
+func merge(left, right []string) []string {
+	var merged []string
+
+	i, j := 0, 0
+	for i < len(left) && j < len(right) {
+		if left[i] <= right[j] {
+			merged = append(merged, left[i])
+			i++
+		} else {
+			merged = append(merged, right[j])
+			j++
+		}
+	}
+
+	merged = append(merged, left[i:]...)
+	merged = append(merged, right[j:]...)
+
+	return merged
 }
