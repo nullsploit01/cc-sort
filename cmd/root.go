@@ -11,6 +11,7 @@ import (
 )
 
 var isUnique bool
+var sortAlgorithm string
 
 var rootCmd = &cobra.Command{
 	Use:   "cc-sort",
@@ -40,9 +41,9 @@ to quickly create a Cobra application.`,
 		}
 
 		if isUnique {
-			lines, err = fs.SortFileByUniqueLines()
+			lines, err = fs.SortFileByUniqueLines(internal.SortAlgorithm(sortAlgorithm))
 		} else {
-			lines, err = fs.SortFileByLines()
+			lines, err = fs.SortFileByLines(internal.SortAlgorithm(sortAlgorithm))
 		}
 		if err != nil {
 			cmd.PrintErrln(err)
@@ -79,5 +80,6 @@ func isBrokenPipeError(err error) bool {
 }
 
 func init() {
-	rootCmd.Flags().BoolVarP(&isUnique, "unique", "u", false, "Unique Keys")
+	rootCmd.Flags().BoolVarP(&isUnique, "unique", "u", false, "--unique")
+	rootCmd.Flags().StringVarP(&sortAlgorithm, "algorithm", "a", string(internal.RadixSort), "--algorithm <algorithm>")
 }
