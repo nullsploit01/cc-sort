@@ -34,13 +34,13 @@ func ProcessFileToSorter(file *os.File) (*FileSorter, error) {
 
 func (f *FileSorter) SortFileByLines() ([]string, error) {
 	var lines []string
-	for line := range f.FileData {
-		lines = append(lines, line)
+	for line, freq := range f.FileData {
+		for i := uint64(0); i < freq; i++ {
+			lines = append(lines, line)
+		}
 	}
 
-	sort.Slice(lines, func(i, j int) bool {
-		return f.FileData[lines[i]] > f.FileData[lines[j]]
-	})
+	sort.Strings(lines)
 
 	return lines, nil
 }
