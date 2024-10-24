@@ -11,6 +11,7 @@ type SortAlgorithm string
 const (
 	RadixSort SortAlgorithm = "radix"
 	MergeSort SortAlgorithm = "merge"
+	QuickSort SortAlgorithm = "quick"
 )
 
 type FileSorter struct {
@@ -55,6 +56,8 @@ func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) 
 		sortedLines = f.SortByRadix()
 	case MergeSort:
 		sortedLines = f.SortByMerge()
+	case QuickSort:
+		sortedLines = f.SortByQuick()
 	default:
 		return nil, errors.New("unsupported sort algorithm")
 	}
@@ -75,6 +78,8 @@ func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, e
 		sortedLines = f.SortByRadix()
 	case MergeSort:
 		sortedLines = f.SortByMerge()
+	case QuickSort:
+		sortedLines = f.SortByQuick()
 	default:
 		return nil, errors.New("unsupported sorting algorithm")
 	}
@@ -94,6 +99,12 @@ func (f *FileSorter) SortByRadix() []string {
 
 func (f *FileSorter) SortByMerge() []string {
 	return mergeSort(f.Lines)
+}
+
+func (f *FileSorter) SortByQuick() []string {
+	quickSort(f.Lines, 0, len(f.Lines)-1)
+
+	return f.Lines
 }
 
 func countingSortByPosition(lines []string, position int) []string {
@@ -166,4 +177,25 @@ func merge(left, right []string) []string {
 	merged = append(merged, right[j:]...)
 
 	return merged
+}
+
+func quickSort(lines []string, low, high int) {
+	if low < high {
+		pi := partition(lines, low, high)
+		quickSort(lines, low, pi-1)
+		quickSort(lines, pi+1, high)
+	}
+}
+
+func partition(lines []string, low, high int) int {
+	pivot := lines[high]
+	i := low - 1
+	for j := low; j < high; j++ {
+		if lines[j] < pivot {
+			i++
+			lines[i], lines[j] = lines[j], lines[i]
+		}
+	}
+	lines[i+1], lines[high] = lines[high], lines[i+1]
+	return i + 1
 }
