@@ -14,14 +14,22 @@ var isUnique bool
 var sortAlgorithm string
 
 var rootCmd = &cobra.Command{
-	Use:   "cc-sort",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "ccsort",
+	Short: "Sorts files using various algorithms.",
+	Long: `cc-sort is a powerful CLI tool for sorting contents of a file using various algorithms including Radix, Merge, Quick, Heap, and Random sorts. 
+	This tool supports unique sorting where duplicate lines are ignored.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Usage:
+	ccsort [options] [file]
+
+	Examples:
+	cc-sort --algorithm merge --unique file.txt
+	cc-sort --algorithm quick file.txt
+
+	Flags:
+	-u, --unique       Sort unique lines only.
+	-a, --algorithm    Specify the sorting algorithm to use (default "radix").`,
+
 	Run: func(cmd *cobra.Command, args []string) {
 		var lines []string
 		if len(args) < 1 {
@@ -73,7 +81,6 @@ func isBrokenPipeError(err error) bool {
 		return true
 	}
 	if opErr, ok := err.(*os.PathError); ok {
-		// Unwrap the error
 		return opErr.Err == syscall.EPIPE
 	}
 	return false
