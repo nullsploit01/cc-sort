@@ -35,7 +35,7 @@ to quickly create a Cobra application.`,
 			panic(err)
 		}
 		defer file.Close()
-		fs, err := internal.ProcessFileToSorter(file)
+		fs, err := internal.ProcessFileToSort(file)
 		if err != nil {
 			cmd.PrintErrln(err)
 		}

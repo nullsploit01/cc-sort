@@ -33,7 +33,7 @@ func TestProcessFileToSorter(t *testing.T) {
 	file := createTempFile(t, content)
 	defer file.Close()
 
-	sorter, err := internal.ProcessFileToSorter(file)
+	sorter, err := internal.ProcessFileToSort(file)
 	if err != nil {
 		t.Fatalf("ProcessFileToSorter failed: %v", err)
 	}

@@ -2,17 +2,23 @@ package internal
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/binary"
 	"errors"
+	"hash/fnv"
+	"math/big"
 	"os"
+	"sort"
 )
 
 type SortAlgorithm string
 
 const (
-	RadixSort SortAlgorithm = "radix"
-	MergeSort SortAlgorithm = "merge"
-	QuickSort SortAlgorithm = "quick"
-	HeapSort  SortAlgorithm = "heap"
+	RadixSort  SortAlgorithm = "radix"
+	MergeSort  SortAlgorithm = "merge"
+	QuickSort  SortAlgorithm = "quick"
+	HeapSort   SortAlgorithm = "heap"
+	RandomSort SortAlgorithm = "random"
 )
 
 type FileSorter struct {
@@ -20,7 +26,7 @@ type FileSorter struct {
 	Lines    []string
 }
 
-func ProcessFileToSorter(file *os.File) (*FileSorter, error) {
+func ProcessFileToSort(file *os.File) (*FileSorter, error) {
 	if _, err := file.Seek(0, 0); err != nil {
 		return nil, err
 	}
@@ -61,6 +67,8 @@ func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) 
 		sortedLines = f.SortByQuick()
 	case HeapSort:
 		sortedLines = f.SortByHeap()
+	case RandomSort:
+		sortedLines = f.SortByRandom()
 	default:
 		return nil, errors.New("unsupported sort algorithm")
 	}
@@ -85,6 +93,8 @@ func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, e
 		sortedLines = f.SortByQuick()
 	case HeapSort:
 		sortedLines = f.SortByHeap()
+	case RandomSort:
+		sortedLines = f.SortByRandom()
 	default:
 		return nil, errors.New("unsupported sorting algorithm")
 	}
@@ -114,6 +124,29 @@ func (f *FileSorter) SortByQuick() []string {
 
 func (f *FileSorter) SortByHeap() []string {
 	heapSort(f.Lines)
+
+	return f.Lines
+}
+
+func (f *FileSorter) SortByRandom() []string {
+	seed, _ := getRandomSeed()
+
+	hasher := fnv.New64a()
+	hashValues := make(map[string]uint64)
+
+	for _, lines := range f.Lines {
+		hasher.Reset()
+		seedBytes := make([]byte, 8)
+		binary.BigEndian.PutUint64(seedBytes, seed.Uint64())
+
+		_, _ = hasher.Write(seedBytes)
+		_, _ = hasher.Write([]byte(lines))
+		hashValues[lines] = hasher.Sum64()
+	}
+
+	sort.Slice(f.Lines, func(i, j int) bool {
+		return hashValues[f.Lines[i]] < hashValues[f.Lines[j]]
+	})
 
 	return f.Lines
 }
@@ -241,4 +274,17 @@ func heapify(lines []string, n, i int) {
 		lines[i], lines[largest] = lines[largest], lines[i]
 		heapify(lines, n, largest)
 	}
+}
+
+func getRandomSeed() (*big.Int, error) {
+	var seed big.Int
+	seedBytes := make([]byte, 8)
+
+	_, err := rand.Read(seedBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	seed.SetBytes(seedBytes)
+	return &seed, nil
 }
