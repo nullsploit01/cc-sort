@@ -56,85 +56,68 @@ func ProcessFileToSort(file *os.File) (*FileSorter, error) {
 	}, nil
 }
 
-func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) {
-	var sortedLines []string
+func (f *FileSorter) applySort(lines []string, algorithm SortAlgorithm) ([]string, error) {
 	switch algorithm {
 	case RadixSort:
-		sortedLines = f.SortByRadix()
+		return f.SortByRadix(lines), nil
 	case MergeSort:
-		sortedLines = f.SortByMerge()
+		return f.SortByMerge(lines), nil
 	case QuickSort:
-		sortedLines = f.SortByQuick()
+		return f.SortByQuick(lines), nil
 	case HeapSort:
-		sortedLines = f.SortByHeap()
+		return f.SortByHeap(lines), nil
 	case RandomSort:
-		sortedLines = f.SortByRandom()
+		return f.SortByRandom(lines), nil
 	default:
 		return nil, errors.New("unsupported sort algorithm")
 	}
-	return sortedLines, nil
+}
+
+func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) {
+	return f.applySort(f.Lines, algorithm)
 }
 
 func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, error) {
-	var uniqueLines []string
+	uniqueLines := make([]string, 0, len(f.FileData))
 	for line := range f.FileData {
 		uniqueLines = append(uniqueLines, line)
 	}
-
-	f.Lines = uniqueLines
-	var sortedLines []string
-
-	switch algorithm {
-	case RadixSort:
-		sortedLines = f.SortByRadix()
-	case MergeSort:
-		sortedLines = f.SortByMerge()
-	case QuickSort:
-		sortedLines = f.SortByQuick()
-	case HeapSort:
-		sortedLines = f.SortByHeap()
-	case RandomSort:
-		sortedLines = f.SortByRandom()
-	default:
-		return nil, errors.New("unsupported sorting algorithm")
-	}
-
-	return sortedLines, nil
+	return f.applySort(uniqueLines, algorithm)
 }
 
-func (f *FileSorter) SortByRadix() []string {
-	maxLength := getMaxLineLength(f.Lines)
+func (f *FileSorter) SortByRadix(lines []string) []string {
+	maxLength := getMaxLineLength(lines)
 
 	for i := maxLength - 1; i >= 0; i-- {
-		f.Lines = countingSortByPosition(f.Lines, i)
+		lines = countingSortByPosition(lines, i)
 	}
 
-	return f.Lines
+	return lines
 }
 
-func (f *FileSorter) SortByMerge() []string {
-	return mergeSort(f.Lines)
+func (f *FileSorter) SortByMerge(lines []string) []string {
+	return mergeSort(lines)
 }
 
-func (f *FileSorter) SortByQuick() []string {
-	quickSort(f.Lines, 0, len(f.Lines)-1)
+func (f *FileSorter) SortByQuick(lines []string) []string {
+	quickSort(lines, 0, len(lines)-1)
 
-	return f.Lines
+	return lines
 }
 
-func (f *FileSorter) SortByHeap() []string {
-	heapSort(f.Lines)
+func (f *FileSorter) SortByHeap(lines []string) []string {
+	heapSort(lines)
 
-	return f.Lines
+	return lines
 }
 
-func (f *FileSorter) SortByRandom() []string {
+func (f *FileSorter) SortByRandom(lines []string) []string {
 	seed, _ := getRandomSeed()
 
 	hasher := fnv.New64a()
 	hashValues := make(map[string]uint64)
 
-	for _, lines := range f.Lines {
+	for _, lines := range lines {
 		hasher.Reset()
 		seedBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(seedBytes, seed.Uint64())
@@ -144,11 +127,11 @@ func (f *FileSorter) SortByRandom() []string {
 		hashValues[lines] = hasher.Sum64()
 	}
 
-	sort.Slice(f.Lines, func(i, j int) bool {
-		return hashValues[f.Lines[i]] < hashValues[f.Lines[j]]
+	sort.Slice(lines, func(i, j int) bool {
+		return hashValues[lines[i]] < hashValues[lines[j]]
 	})
 
-	return f.Lines
+	return lines
 }
 
 func countingSortByPosition(lines []string, position int) []string {
