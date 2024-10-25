@@ -12,6 +12,7 @@ const (
 	RadixSort SortAlgorithm = "radix"
 	MergeSort SortAlgorithm = "merge"
 	QuickSort SortAlgorithm = "quick"
+	HeapSort  SortAlgorithm = "heap"
 )
 
 type FileSorter struct {
@@ -58,6 +59,8 @@ func (f *FileSorter) SortFileByLines(algorithm SortAlgorithm) ([]string, error) 
 		sortedLines = f.SortByMerge()
 	case QuickSort:
 		sortedLines = f.SortByQuick()
+	case HeapSort:
+		sortedLines = f.SortByHeap()
 	default:
 		return nil, errors.New("unsupported sort algorithm")
 	}
@@ -80,6 +83,8 @@ func (f *FileSorter) SortFileByUniqueLines(algorithm SortAlgorithm) ([]string, e
 		sortedLines = f.SortByMerge()
 	case QuickSort:
 		sortedLines = f.SortByQuick()
+	case HeapSort:
+		sortedLines = f.SortByHeap()
 	default:
 		return nil, errors.New("unsupported sorting algorithm")
 	}
@@ -103,6 +108,12 @@ func (f *FileSorter) SortByMerge() []string {
 
 func (f *FileSorter) SortByQuick() []string {
 	quickSort(f.Lines, 0, len(f.Lines)-1)
+
+	return f.Lines
+}
+
+func (f *FileSorter) SortByHeap() []string {
+	heapSort(f.Lines)
 
 	return f.Lines
 }
@@ -198,4 +209,36 @@ func partition(lines []string, low, high int) int {
 	}
 	lines[i+1], lines[high] = lines[high], lines[i+1]
 	return i + 1
+}
+
+func heapSort(lines []string) {
+	n := len(lines)
+
+	for i := n/2 - 1; i >= 0; i-- {
+		heapify(lines, n, i)
+	}
+
+	for i := n - 1; i >= 0; i-- {
+		lines[0], lines[i] = lines[i], lines[0]
+		heapify(lines, i, 0)
+	}
+}
+
+func heapify(lines []string, n, i int) {
+	largest := i
+	left := 2*i + 1
+	right := 2*i + 2
+
+	if left < n && lines[left] > lines[largest] {
+		largest = left
+	}
+
+	if right < n && lines[right] > lines[largest] {
+		largest = right
+	}
+
+	if largest != i {
+		lines[i], lines[largest] = lines[largest], lines[i]
+		heapify(lines, n, largest)
+	}
 }
